@@ -15,7 +15,7 @@ func translateNoSymbols(lines: [String]) throws -> [String] {
         do {
             return try translateLineNoSymbols(line: line)
         } catch {
-            throw AssemblerError.lineError(n, line, error)
+            throw HackAssemblerError.lineError(n, line, error)
         }
     }
 }
@@ -89,7 +89,7 @@ private func parseAddress(line: String) throws -> String {
     let index1 = line.index(after: line.startIndex)
     let address = line[index1...]
     guard let value = Int16(address) else {
-        throw AssemblerError.invalidAddress
+        throw InternalError.invalidAddress
     }
     return value.paddedBinaryString()
 }
@@ -106,7 +106,7 @@ private func translateInstruction(line: String) throws -> String {
 private func translateJump(_ jump: Substring?) throws -> String {
     guard let jump = jump else { return "000" }
     guard let translated = jumpMap[String(jump)] else {
-        throw AssemblerError.invalidJump
+        throw InternalError.invalidJump
     }
     return translated
 }
@@ -114,14 +114,14 @@ private func translateJump(_ jump: Substring?) throws -> String {
 private func translateDestination(_ destination: Substring?) throws -> String {
     guard let destination = destination else { return "000" }
     guard let translated = destinationMap[String(destination)] else {
-        throw AssemblerError.invalidDestination
+        throw InternalError.invalidDestination
     }
     return translated
 }
 
 private func translateCompute(_ computation: Substring) throws -> String {
     guard let translated = computationMap[String(computation)] else {
-        throw AssemblerError.invalidCompute
+        throw InternalError.invalidCompute
     }
     return translated
 }
@@ -133,7 +133,7 @@ private func parseInstructionComponents(_ line: String) throws -> InstructionCom
     
     let splitOnSemicolon = line.split(separator: ";")
     guard splitOnSemicolon.count <= 2 else {
-        throw AssemblerError.unexpectedSemicolon
+        throw InternalError.unexpectedSemicolon
     }
     
     if splitOnSemicolon.count == 2 {
@@ -144,7 +144,7 @@ private func parseInstructionComponents(_ line: String) throws -> InstructionCom
     
     let splitOnEquals = splitOnSemicolon[0].split(separator: "=")
     guard splitOnEquals.count <= 2 else {
-        throw AssemblerError.unexpectedEquals
+        throw InternalError.unexpectedEquals
     }
     
     if splitOnEquals.count == 2 {

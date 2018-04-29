@@ -3,7 +3,7 @@ import HackAssemblerCore
 do {
     try HackAssembler.run()
 } catch {
-    print(error)
+    print("Error: \(error)")
 }
 
 

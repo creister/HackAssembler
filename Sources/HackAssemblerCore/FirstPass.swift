@@ -13,7 +13,7 @@ import Foundation
  */
 func translateSymbolsOnly(lines: [String]) throws -> [String] {
     let (linesWithoutLabels, labelMap) = try extractLabels(lines: lines)
-    let output = try parseVariables(lines: linesWithoutLabels, labelMap: labelMap)
+    let output = parseVariables(lines: linesWithoutLabels, labelMap: labelMap)
     return output
 }
 
@@ -24,29 +24,38 @@ private func extractLabels(lines: [String]) throws -> ([String], [String: Int16]
     
     var linesWithoutLabels = [String]()
     
-    for line in lines {
-        if line.first == "(" && line.last == ")" {
-            let label = line.dropFirst().dropLast()
-            
-            // ensure label exists and doesn't start with decimal
-            guard let first = label.unicodeScalars.first, !CharacterSet.decimalDigits.contains(first) else {
-                throw AssemblerError.invalidLabel
+    try lines.enumerated().forEach { (n, line) in
+        do {
+            if line.first == "(" && line.last == ")" {
+                let label = String(line.dropFirst().dropLast())
+                
+                // ensure label exists and doesn't start with decimal
+                guard let first = label.unicodeScalars.first, !CharacterSet.decimalDigits.contains(first) else {
+                    throw InternalError.invalidLabel
+                }
+                
+                // ensure label isn't a reserved symbol, illegal to reassign these
+                guard builtInVariableMap[label] == nil else {
+                    throw InternalError.labelConflictsPredefined(label)
+                }
+                
+                labelMap[String(label)] = instructionNumber
+            } else {
+                linesWithoutLabels.append(line)
+                instructionNumber += 1
             }
-            
-            labelMap[String(label)] = instructionNumber
-        } else {
-            linesWithoutLabels.append(line)
-            instructionNumber += 1
+        } catch {
+            throw HackAssemblerError.lineError(n, line, error)
         }
     }
     
     return (linesWithoutLabels, labelMap)
 }
 
-private func parseVariables(lines: [String], labelMap: [String: Int16]) throws -> [String] {
-    // combine built in with labels, throw if any label conflicts with a built in
-    var variableMap = try builtInVariableMap.merging(labelMap) { (_, _) -> Int16 in
-        throw AssemblerError.invalidLabel
+private func parseVariables(lines: [String], labelMap: [String: Int16]) -> [String] {
+    // combine built in with labels. We don't expect merges as this is handled in an internal error above
+    var variableMap = builtInVariableMap.merging(labelMap) { (_, _) -> Int16 in
+        fatalError("Unexpected conflict between predefined variables and labels")
     }
     
     var newVariableAddress: Int16 = 16

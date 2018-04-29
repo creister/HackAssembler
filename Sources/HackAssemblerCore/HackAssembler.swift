@@ -4,7 +4,7 @@ public struct HackAssembler {
     
     public static func run(arguments: [String] = CommandLine.arguments) throws {
         guard arguments.count > 1 else {
-            throw AssemblerError.noFileArgument
+            throw HackAssemblerError.noFileArgument
         }
         
         let filePath = CommandLine.arguments[1]
@@ -12,11 +12,11 @@ public struct HackAssembler {
         let fileManager = FileManager()
         
         guard let fileData = fileManager.contents(atPath: filePath) else {
-            throw AssemblerError.noFile
+            throw HackAssemblerError.noFile
         }
         
         guard let fileString = String(data: fileData, encoding: .utf8) else {
-            throw AssemblerError.cannotReadFile
+            throw HackAssemblerError.cannotReadFile
         }
         
         let lines = fileString.components(separatedBy: .newlines)
@@ -39,10 +39,16 @@ public struct HackAssembler {
         
 }
 
-enum AssemblerError: Error {
+// External errors
+enum HackAssemblerError: Error {
     case noFileArgument
     case noFile
     case cannotReadFile
+    case lineError(Int, String, Error)  // line number, line, internal error
+}
+
+// Internal Errors, should be wrapped in HackAssemberErrors
+enum InternalError: Error {
     case invalidAddress
     case unexpectedSemicolon
     case unexpectedEquals
@@ -50,5 +56,5 @@ enum AssemblerError: Error {
     case invalidDestination
     case invalidCompute
     case invalidLabel
-    case lineError(Int, String, Error)
+    case labelConflictsPredefined(String)
 }
