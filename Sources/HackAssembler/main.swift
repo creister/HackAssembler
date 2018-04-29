@@ -161,17 +161,15 @@ private func parseInstructionComponents(_ line: String) throws -> InstructionCom
     return InstructionComponents(computeInstruction: computeInstruction, destinationInstruction: destinationInstruction, jumpInstruction: jumpInstruction)
 }
 
-private func translateJump<S: StringProtocol>(_ string: S) -> String {
-    return "111"
-}
-
 guard CommandLine.arguments.count > 1 else {
     throw AssemblerError.noFileArgument
 }
 
 let filePath = CommandLine.arguments[1]
 
-guard let fileData = FileManager().contents(atPath: filePath) else {
+let fileManager = FileManager()
+
+guard let fileData = fileManager.contents(atPath: filePath) else {
     throw AssemblerError.noFile
 }
 
@@ -186,5 +184,13 @@ let lines = fileString.components(separatedBy: .newlines)
     .map { $0.components(separatedBy: "//").first }             // drop comments appearing after an instruction
     .flatMap { $0 }
 
-let translated = try translateNoSymbols(lines: lines)
-translated.forEach { print($0) }
+let translatedLines = try translateNoSymbols(lines: lines)
+
+let outputString = translatedLines.joined(separator: "\n").appending("\n")
+let outputData = outputString.data(using: .utf8)
+
+// create output file with "[input file name].hack" in current directory
+let fileURL = URL(fileURLWithPath: filePath)
+let outputFileURL = fileURL.deletingPathExtension().appendingPathExtension("hack").lastPathComponent
+
+fileManager.createFile(atPath: outputFileURL, contents: outputData, attributes: nil)
