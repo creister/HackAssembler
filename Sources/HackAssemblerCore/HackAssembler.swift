@@ -23,7 +23,9 @@ public struct HackAssembler {
         
         let cleanedLines = clean(lines: lines)
         
-        let translatedLines = try translateNoSymbols(lines: cleanedLines)
+        let linesNoSymbols = try translateSymbolsOnly(lines: cleanedLines)
+        
+        let translatedLines = try translateNoSymbols(lines: linesNoSymbols)
         
         let outputString = translatedLines.joined(separator: "\n").appending("\n")
         let outputData = outputString.data(using: .utf8)
@@ -47,4 +49,6 @@ enum AssemblerError: Error {
     case invalidJump
     case invalidDestination
     case invalidCompute
+    case invalidLabel
+    case lineError(Int, String, Error)
 }

@@ -11,7 +11,13 @@ import Foundation
  Translate lines of hack assembly with no symbols into lines of hack binary
  */
 func translateNoSymbols(lines: [String]) throws -> [String] {
-    return try lines.map(translateLineNoSymbols)
+    return try lines.enumerated().map { (n, line) -> String in
+        do {
+            return try translateLineNoSymbols(line: line)
+        } catch {
+            throw AssemblerError.lineError(n, line, error)
+        }
+    }
 }
 
 private struct InstructionComponents {
@@ -67,6 +73,7 @@ private let computationMap: [String: String] = [
     "M-1": "1110010",
     "D+M": "1000010",
     "D-M": "1010011",
+    "M-D": "1000111",
     "D&M": "1000000",
     "D|M": "1010101"
 ]
