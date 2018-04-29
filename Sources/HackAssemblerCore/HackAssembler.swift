@@ -58,3 +58,32 @@ enum InternalError: Error {
     case invalidLabel
     case labelConflictsPredefined(String)
 }
+
+extension HackAssemblerError: LocalizedError {
+    
+    public var errorDescription: String? {
+        switch self {
+        case .noFile: return "File not found"
+        case .noFileArgument: return "No assembly file specified"
+        case .cannotReadFile: return "Unable to read file"
+        case let .lineError(lineNum, line, error): return "Line \(lineNum) (\(line)): \(error.localizedDescription)"
+        }
+    }
+    
+}
+
+extension InternalError: LocalizedError {
+    
+    public var errorDescription: String? {
+        switch self {
+        case .invalidAddress: return "Invalid address"
+        case .unexpectedSemicolon: return "Unexpected semicolon"
+        case .unexpectedEquals: return "Unexpected symbol ="
+        case .invalidJump: return "Invalid jump"
+        case .invalidDestination: return "Invalid destination"
+        case .invalidCompute: return "Invalid compute"
+        case .invalidLabel: return "Invalid label"
+        case let .labelConflictsPredefined(label): return "Label conflicts predefined symbol: \(label)"
+        }
+    }
+}
